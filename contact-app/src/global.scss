@@ -1,0 +1,56 @@
+/* Container Styles */
+.dashboard {
+   background-color: #f4f7fc;
+   min-height: 100vh;
+   padding: 30px 20px;
+ }
+ 
+ .container {
+   max-width: 1200px;
+   margin: 0 auto;
+   padding: 15px;
+ }
+ 
+ .card {
+   background-color: #ffffff;
+   border-radius: 8px;
+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+ }
+ 
+ .card-body {
+   padding: 20px;
+ }
+ 
+ /* Header Styling */
+ h1 {
+   font-size: 2.5rem; /* Increased header size */
+   color: #333;
+   font-weight: 600;
+   margin-bottom: 1.5rem;
+ }
+ 
+ .mb-3 {
+   margin-bottom: 1rem;
+ }
+ 
+ /* DataTable Styles */
+ .p-datatable {
+   background-color: #fff;
+   border-radius: 8px;
+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+ }
+ 
+ .p-datatable .p-datatable-thead > tr > th {
+   background-color: #007bff; /* Blue background for header */
+   color: white;
+   font-weight: 600;
+   text-align: center;
+   font-size: 16px; /* Increased header font size */
+ }
+ 
+ .p-datatable .p-datatable-tbody > tr > td {
+   text-align: center;
+   padding: 8px 10px; /* Decreased padding to reduce space between rows */
+ }
+ 
+ 
