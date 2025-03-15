@@ -1,62 +1,120 @@
-import React, { useState } from "react";
+//We use this compnent to both add-edit contact form
+import React, { useEffect, useRef, useState } from "react";
 import "./add-contact.scss";
-import { IContact } from "../../types/global.typing";
-import { useNavigate } from "react-router-dom";
-import { baseUrl } from "../../constants/url.constant";
-import axios from "axios"; 
-import { ToastContainer } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ToastContainer,toast } from "react-toastify";
 import Loader from "../../loader/loader";
 import { Calendar } from "primereact/calendar";
-import { FormEvent } from "primereact/ts-helpers";
+import { contactAPI } from "../../services/contactService";
 
 const AddContact: React.FC = () => {
-   const [contact, setContact] = React.useState<Partial<IContact>>({ contactName: "", contactEmail: "",contactBirthDate: new Date() });
    const navigate = useNavigate();
-   var date = new Date();
+   const params = useLocation();
+   const hasEdited = useRef(false);
+   const [isEdit,setIsEdit] = useState(true);
    const [contactData, setContactData] = useState({
       contactId: 0,
       contactName: "",
       contactEmail: "",
       contactPhone: "",
       contactAddress: "",
-      contactBirthDate: null
+      contactBirthDate: new Date()
   });
-   const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-      setContact({
-         ...contact,
-         [event.target.name]: event.target.value,
-      });
-   };
-   const dateChange = (newVal : Date|null) => {
-      setContact({
-         ...contact,
-        //ontactBirthDate : newVal,
-      });
-   };
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    if (!contactData.contactName) {
+        toast.error("Please enter Contact Name!");
+        return;
+    }
+    if (!contactData.contactEmail) {
+        toast.error("Please enter Contact Email!");
+        return;
+    }
+    if (!contactData.contactPhone) {
+        toast.error("Please enter Contact Phone!");
+        return;
+    }
+    if (!contactData.contactAddress) {
+        toast.error("Please enter Contact Address!");
+        return;
+    }
+    const formData = new FormData();
 
-   const handleSaveBtnClick = () => {
-      if (contact.contactName === "" || contact.contactEmail === "") {
-         alert("Enter Values");
-         return;
-      }
+    const data = {
+        contactId: contactData.contactId ? contactData.contactId : 0, 
+        contactName: contactData.contactName, 
+        contactEmail:contactData.contactEmail, 
+        contactAddress:contactData.contactAddress, 
+        contactPhone:contactData.contactPhone, 
+        contactBirthDate:birthDate
+    };
+    if(!isEdit){
+    await contactAPI
+    .createContact()
+    .create(contactData, {
+        headers: {
+            "Content-Type": "application/json", 
+        },
+    })
+    .then((res) => {
+        if (res.data) {
+            console.log("Contact created successfully with ID:", res.data);
+        } else {
+            console.error("Error:", res.data);
+        }
+    })
+    .catch((e) => {
+        console.error("Error during request:", e);
+    });
+}
+else
+{
+    await contactAPI
+    .updateContact()
+    .update(contactData, {
+        headers: {
+            "Content-Type": "application/json",  // Ensure you are sending JSON
+        },
+    })
+    .then((res) => {
+        if (res.data) {
+            console.log("Contact updated successfully with ID:", res.data);
+        } else {
+            console.error("Error:", res.data);
+        }
+    })
+    .catch((e) => {
+        console.error("Error during request:", e);
+    }); 
+}
 
-      const data: Partial<IContact> = {
-         contactName: contact.contactName,
-         contactEmail: contact.contactEmail,
-      };
-      axios
-         .post(baseUrl, data)
-         .then((resposne) => navigate("/contacts", { state: { message: "Contact Created Successfully" } }))
-         .catch((error) => alert("Error"));
-   };
-
-   const handleStartDate = (evt:any) => {
-      const startDT = evt.value;
-     
-          setStartDate(evt.value);
+}
+ const handleBirthDate = (evt:any) => {
+    setBirthDate(evt.value);
   }
-  const [startDate, setStartDate] = useState(new Date(date.setHours(9, 0)));
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name } = event.target;
+    setContactData({
+      ...contactData,
+      [name]: event.target.value 
+    });
+  };
+  const [birthDate, setBirthDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const editFormData = async (contactId: number) => {
+    contactAPI.getContact().fetchAll(contactId).then(async (response) => {
+        setContactData(response.data);
+        setIsEdit(true);
+    });
+};
+  useEffect(() => {
+        const { contactId } = params.state;
+        if (contactId !== undefined) {
+            editFormData(Number(contactId));
+            hasEdited.current = true;  // Set to true after calling
+        }
+    
+}, []);
    return (
       <>
           <ToastContainer />
@@ -86,6 +144,8 @@ const AddContact: React.FC = () => {
                   </div>
                   <div className="card">
                       <div className="card-body">
+                        
+                      <form onSubmit={handleSubmit}>
                           <div className="row">
                               <div className="col-md-12">
                                   <h2 className="font-weight-medium mb-3 border-bottom">Contact Information</h2>
@@ -97,8 +157,8 @@ const AddContact: React.FC = () => {
                                   <div className="mb-3">
                                       <label htmlFor="contactName">Contact Name <span className="required-star" ></span></label>
                                       <input type="text" id="contactName" className="form-control" aria-required="true" placeholder="Contact Name"
-                                          value={contactData.contactName}
-                                          disabled autoComplete="off" maxLength={100} />
+                                          value={contactData.contactName} name ="contactName" onChange={handleInputChange}
+                                           autoComplete="off" maxLength={100} />
                                   </div>
                               </div>
                                   </div>
@@ -109,9 +169,9 @@ const AddContact: React.FC = () => {
                                       <div className="col-md-4">
                                   <div className="mb-3">
                                       <label htmlFor="contactEmail">Contact Email <span className="required-star" ></span></label>
-                                      <input type="text" id="firstName" className="form-control" aria-required="true" placeholder="Contact Email"
-                                          value={contactData.contactEmail}
-                                          disabled autoComplete="off" maxLength={100} />
+                                      <input type="text" id="contactEmail" className="form-control" aria-required="true" placeholder="Contact Email"
+                                          value={contactData.contactEmail} name ="contactEmail"  onChange={handleInputChange}
+                                           autoComplete="off" maxLength={100} />
                                   </div>
                               </div>
                                   </div>
@@ -123,34 +183,53 @@ const AddContact: React.FC = () => {
                                   <div className="mb-3">
                                       <label htmlFor="contactAddress">Contact Address <span className="required-star" ></span></label>
                                       <input type="text" id="contactAddress" className="form-control" aria-required="true" placeholder="Contact Address"
-                                          value={contactData.contactAddress}
-                                          disabled autoComplete="off" maxLength={100} />
+                                          value={contactData.contactAddress} name ="contactAddress" onChange={handleInputChange}
+                                           autoComplete="off" maxLength={100} />
                                   </div>
                               </div>
                                   </div>
                               </div>
                               <div className="col-md-4">
                                   <div className="mb-3">
-                                      <label htmlFor="contactPhone">Email <span className="required-star" ></span></label>
+                                      <label htmlFor="contactPhone">Contact Phone <span className="required-star" ></span></label>
                                       <div className="col-md-4">
                                   <div className="mb-3">
-                                      <label htmlFor="contactPhone">First Name <span className="required-star" ></span></label>
+                                      <label htmlFor="contactPhone">Contact Phone <span className="required-star" ></span></label>
                                       <input type="text" id="contactPhone" className="form-control" aria-required="true" placeholder="Contact Phone"
-                                          value={contactData.contactPhone}
-                                          disabled autoComplete="off" maxLength={100} />
+                                          value={contactData.contactPhone} name ="contactPhone" onChange={handleInputChange}
+                                           autoComplete="off" maxLength={100} />
                                   </div>
                               </div>
                                   </div>
                               </div>
                               <div className="col-md-4">
                                   <div className="mb-3">
-                                      <label htmlFor="startTime">Start Time <span className="required-star" ></span></label>
-                                      <Calendar className="w-100" inputId="startTime"
-                                         value={startDate} onChange={(e) => handleStartDate(e)} showIcon showTime dateFormat="mm/dd/yy" hourFormat="12" stepMinute={5}
-                                          placeholder="Select Start Time" appendTo="self" />
+                                      <label htmlFor="birthDate">birth Date <span className="required-star" ></span></label>
+                                      <Calendar className="w-100" inputId="BirthDate" name ="birthDate"
+                                         value={birthDate} onChange={(e) => handleBirthDate(e)} showIcon dateFormat="mm/dd/yy" hourFormat="12"
+                                          placeholder="Birth Date" appendTo="self" />
                                   </div>
                               </div>
+                              { !isEdit && (
+                                    <button
+                                        type="submit"
+                                        value="Add"
+                                        className="btn btn-primary mr-2"
+                                    >
+                                        Add
+                                    </button>
+                                )}
+                                { isEdit && (
+                                    <button
+                                        type="submit"
+                                        value="Update"
+                                        className="btn btn-primary mr-2"
+                                    >
+                                        Update
+                                    </button>
+                                )}
                           </div>
+                          </form>
                       </div>
                   </div>
               </div>

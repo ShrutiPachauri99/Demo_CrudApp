@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import "./contacts.scss";
 import { IContact } from "../../types/global.typing";
-import { Button } from "@mui/material";
-import { Edit, Delete,Add } from "@mui/icons-material";
-import moment from "moment";
 import { useNavigate, useLocation } from "react-router-dom";
 import { contactAPI } from "../../services/contactService";
 import { Column } from "primereact/column";
@@ -12,34 +9,50 @@ import { DataTable } from "primereact/datatable";
 import { Tooltip } from "react-tooltip";
 import { ToastContainer } from "react-toastify";
 import Loader from "../../loader/loader";
-function formatDate(dateString: string): string {
-   const date = new Date(dateString);
- 
-   // Get the month, day, and year
-   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-   const day = String(date.getDate()).padStart(2, '0');
-   const year = String(date.getFullYear()).slice(2); // Get last two digits of the year
- 
-   return `${month}/${day}/${year}`;
- }
+import { Dialog } from "primereact/dialog";
+import {toastSuccessPopup, hasValue , formatDate} from "../common"
  
 const Contacts: React.FC = () => {
    const [contacts, setContacts] = useState<IContact[]>([]);
    const [isLoading, setIsLoading] = useState<boolean>(false);
    const location = useLocation();
    const [globalFilterValue, setGlobalFilterValue] = useState('');
-   const onGlobalFilterChange = (e: { target: { value: any; }; }) => {
+   const [selectedContact, setSelectedContact] = useState(null);
+    const [deleteContact, setDeleteContact] = useState(false);
+   const onGlobalFilterChange = (x: { target: { value: any; }; }) => {
       let results = [];
-      const value = e.target.value;
+      const value = x.target.value;
       if (value && value.trim().length > 2) {
-         //  results = contacts.filter((x) => {
-         //    (hasValue(x.studentName) ? x.studentName.toLowerCase().includes(globalFilterValue.trim().toLowerCase()) : null) ||
-                       
-         //  });
-      }
+        results = contacts.filter((x) => {
+            return (
+                (((hasValue(x.contactName) ? x.contactName.toLowerCase().includes(value.trim().toLowerCase()) : null) ||
+                    (hasValue(x.contactEmail) ? x.contactEmail.toLowerCase().includes(value.trim().toLowerCase()) : null) ||
+                    (hasValue(x.contactPhone) ? x.contactPhone.toLowerCase().includes(value.trim().toLowerCase()) : null) ||
+                    (hasValue(x.contactPhone) ? formatDate(x.contactPhone).includes(value.trim().toLowerCase()) : null) 
+                ))
+            );
+        });
+    }
   };
    const navigate = useNavigate();
-  
+    
+    const DeleteContact = async (contact:any) => {
+
+        await contactAPI.deleteContact()
+        .delete(contact)
+        .then((res:any) => {
+            if (res.status === 200) {
+                // Handle success (e.g., show success message)
+                console.log("Contact deleted successfully:", res.data);
+            }
+        })
+        .catch((e: any) => {
+            // Handle error (e.g., show error message)
+            console.error("Error deleting contact:", e);
+        });
+        
+}
+
       useEffect(() => {
          const fetchContacts = async () => {
             try {
@@ -57,13 +70,18 @@ const Contacts: React.FC = () => {
           };
        fetchContacts();
    }, []);
-
-   const renderActions = (rowData: { contactId: number; }) => {
+   const footerContentDeleteContact = (
+    <div>
+        <button onClick={() => setDeleteContact(false)} className="btn btn-secondary ms-2">No</button>
+        <button onClick={() => { selectedContact && DeleteContact(selectedContact); setDeleteContact(false); }} className="btn btn-primary ms-2">Yes</button>
+    </div>
+);
+  
+  
+   const renderActions = (rowData:any) => {
       return (
         <>
-          <Tooltip id="view" />
           <Tooltip id="edit" />
-    
           <button
             className="border-0 bg-transparent text-primary"
             data-tooltip-id="edit"
@@ -71,26 +89,26 @@ const Contacts: React.FC = () => {
             data-tooltip-place="top"
             data-tooltip-offset={3}
             onClick={() =>
-              navigate("../add", { state: { contactId: rowData.contactId } })
+              navigate("../contacts/add", { state: { contactId: rowData.contactId } })
             }
           >
-            <i className="fas fa-eye"></i>
-            <span className="sr-only">View</span>
+            <i className="delete"></i>
+            <span className="sr-only">Delete</span>
           </button>
-          {/* <button
-            className="border-0 bg-transparent text-primary"
-            data-tooltip-id="edit"
-            data-tooltip-content="Edit"
-            data-tooltip-place="top"
-            data-tooltip-offset={3}
-            onClick={() =>
-               navigate("../AddContact", { state: { AppId: rowData.appId } })
-                   
-            }
-          >
-            <i className="fa-solid fa-pen"></i>
-            <span className="sr-only">Edit</span>
-          </button> */}
+
+          <Tooltip id="Delete" />
+                <button
+                    className="border-0 bg-transparent text-danger"
+                    data-tooltip-id="Delete"
+                    data-tooltip-content="Delet"
+                    data-tooltip-place="right"
+                    data-tooltip-offset={3}
+                    onClick={() => { setSelectedContact(rowData); setDeleteContact(true); }}
+                >
+                    <i className="fas fa-trash"></i>
+                    <span className="sr-only">Delete User</span>
+                </button>
+          
         </>
       );
     };
@@ -135,7 +153,7 @@ const Contacts: React.FC = () => {
                                     >
                                         <Column
                                             header="Action"
-                                            body={(rowData: { contactId: number }) => renderActions(rowData)}
+                                            body={(rowData) => renderActions(rowData)}
                                             style={{ minWidth: "80px", width: "80px" }}
                                         ></Column>
                                         <Column
@@ -166,11 +184,16 @@ const Contacts: React.FC = () => {
                                             field="contactBirthDate"
                                             header="Birth Date"
                                             sortable
-                                            //body={(x) => { formatDate(contactBirthDate)}}
+                                            body={(x) => { return formatDate(x.contactBirthDate);}}
                                             style={{ minWidth: "200px", width: "200px" }}
                                         ></Column>
                                     </DataTable>
                                 </div>
+                                <Dialog header="Delete Confirmation" draggable={false} visible={deleteContact} style={{ width: '94%', maxWidth: '680px' }} onHide={() => { if (!deleteContact) return; setDeleteContact(false); }} footer={footerContentDeleteContact}>
+                                    <p className="m-0">
+                                        Are you sure you want to delete this Assistant from the application?
+                                    </p>
+                                </Dialog>
                             </div>
                         </div>
                     </div>
