@@ -30,6 +30,10 @@ const Contacts: React.FC = () => {
       setGlobalFilterValue(value);
       const filteredResults = dashboard.filter((contact) => {
         return (
+          (hasValue(contact.contactBirthDate) &&
+            formatDate(contact.contactBirthDate.toString()).includes(
+              value.toLowerCase()
+            )) ||
           (hasValue(contact.contactName) &&
             contact.contactName.toLowerCase().includes(value.toLowerCase())) ||
           (hasValue(contact.contactEmail) &&
@@ -44,7 +48,6 @@ const Contacts: React.FC = () => {
               .includes(value.toLowerCase()))
         );
       });
-
       setContacts(filteredResults);
     } else {
       setGlobalFilterValue("");
