@@ -7,6 +7,7 @@ $light-blue: #e6ecf2;
 $btn-hover: #034692;
 $btn-primary: #ffd600;
 $ascent21: #333;
+$border-color: #7b858f;
 $danger-link: #b71f2e !default;
 .dashboard {
   background-color: #f4f7fc;
@@ -128,7 +129,7 @@ h1 {
 .rc-time-picker-panel-input {
   background-color: $white;
   background-image: none;
-  //border: 1px solid $border-color !important;
+  border: 1px solid $border-color !important;
   border-radius: 4px;
   -webkit-box-shadow: none;
   box-shadow: none;
