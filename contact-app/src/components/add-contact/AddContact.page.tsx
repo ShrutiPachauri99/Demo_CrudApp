@@ -133,10 +133,12 @@ const AddContact: React.FC = () => {
 
   //Handle editing of data
   const editFormData = async (contactId: number) => {
+    setIsLoading(true);
     contactAPI
       .getContact()
       .fetchAll(contactId)
       .then(async (response) => {
+        setIsLoading(false);
         setContactData(response.data);
         setIsEdit(true);
       });
