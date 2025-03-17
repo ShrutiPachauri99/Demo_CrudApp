@@ -60,7 +60,7 @@ const AddContact: React.FC = () => {
       contactEmail: contactData.contactEmail,
       contactAddress: contactData.contactAddress,
       contactPhone: contactData.contactPhone,
-      contactBirthDate: birthDate,
+      contactBirthDate: contactData.contactBirthDate,
     };
     if (!isEdit) {
       setIsLoading(true);
@@ -114,8 +114,13 @@ const AddContact: React.FC = () => {
         });
     }
   };
-  const handleBirthDate = (evt: any) => {
-    setBirthDate(evt.value);
+  const handleBirthDate = (e: any) => {
+    const selectedDate = e.value; // Assuming PrimeReact Calendar
+
+    setContactData((prevData) => ({
+      ...prevData,
+      contactBirthDate: selectedDate,
+    }));
   };
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = event.target;
@@ -138,7 +143,12 @@ const AddContact: React.FC = () => {
       .fetchAll(contactId)
       .then(async (response) => {
         setIsLoading(false);
-        setContactData(response.data);
+        setContactData({
+          ...response.data,
+          contactBirthDate: response.data.contactBirthDate
+            ? new Date(response.data.contactBirthDate)
+            : new Date(),
+        });
         setIsEdit(true);
       });
   };
@@ -268,7 +278,7 @@ const AddContact: React.FC = () => {
                           className=" w-100"
                           inputId="BirthDate"
                           name="birthDate"
-                          value={birthDate}
+                          value={contactData.contactBirthDate}
                           onChange={(e) => handleBirthDate(e)}
                           showIcon
                           dateFormat="mm/dd/yy"
