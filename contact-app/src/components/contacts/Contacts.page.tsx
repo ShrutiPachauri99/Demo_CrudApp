@@ -307,6 +307,8 @@ const Contacts: React.FC = () => {
                     backgroundColor: "#787878",
                     color: "white",
                     margin: "20px",
+                    padding: "20px",
+                    textAlign: "center",
                   }}
                   onHide={() => {
                     if (!deleteContact) return;
