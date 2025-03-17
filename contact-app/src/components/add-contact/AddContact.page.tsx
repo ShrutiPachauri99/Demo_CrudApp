@@ -6,13 +6,14 @@ import { ToastContainer, toast } from "react-toastify";
 import Loader from "../../loader/loader";
 import { Calendar } from "primereact/calendar";
 import { contactAPI } from "../../services/contactService";
+import { toastSuccessPopup } from "../common";
 const AddContact: React.FC = () => {
   const navigate = useNavigate();
   const params = useLocation();
   const hasEdited = useRef(false);
-  const [isEdit, setIsEdit] = useState(true);
+  const [isEdit, setIsEdit] = useState(false);
   const [birthDate, setBirthDate] = useState(new Date());
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [contactData, setContactData] = useState({
     contactId: 0,
     contactName: "",
@@ -21,6 +22,8 @@ const AddContact: React.FC = () => {
     contactAddress: "",
     contactBirthDate: new Date(),
   });
+
+  //Submit form
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     //Validations
@@ -32,12 +35,22 @@ const AddContact: React.FC = () => {
       toast.error("Please enter Contact Email!");
       return;
     }
+    if (contactData.contactEmail && !validateEmail(contactData.contactEmail)) {
+      toast.error("Please enter valid Contact Email!");
+      return;
+    }
+
+    if (!contactData.contactAddress) {
+      toast.error("Please enter Contact Address!");
+      return;
+    }
+
     if (!contactData.contactPhone) {
       toast.error("Please enter Contact Phone!");
       return;
     }
-    if (!contactData.contactAddress) {
-      toast.error("Please enter Contact Address!");
+    if (contactData.contactPhone && contactData.contactPhone.length !== 10) {
+      toast.error("Please enter 10 valid number for phone!");
       return;
     }
     const formData = new FormData();
@@ -51,6 +64,7 @@ const AddContact: React.FC = () => {
       contactBirthDate: birthDate,
     };
     if (!isEdit) {
+      setIsLoading(true);
       await contactAPI
         .createContact()
         .create(contactData, {
@@ -59,7 +73,13 @@ const AddContact: React.FC = () => {
           },
         })
         .then((res) => {
+          setIsLoading(false);
           if (res.data) {
+            toastSuccessPopup(
+              "Contact created Sucessfully",
+              false,
+              "../../Contacts"
+            );
             console.log("Contact created successfully with ID:", res.data);
           } else {
             console.error("Error:", res.data);
@@ -69,6 +89,7 @@ const AddContact: React.FC = () => {
           console.error("Error during request:", e);
         });
     } else {
+      setIsLoading(true);
       await contactAPI
         .updateContact()
         .update(contactData, {
@@ -77,8 +98,14 @@ const AddContact: React.FC = () => {
           },
         })
         .then((res) => {
+          setIsLoading(false);
           if (res.data) {
             console.log("Contact updated successfully with ID:", res.data);
+            toastSuccessPopup(
+              "Contact Updated Sucessfully",
+              false,
+              "../../Contacts"
+            );
           } else {
             console.error("Error:", res.data);
           }
@@ -98,6 +125,13 @@ const AddContact: React.FC = () => {
       [name]: event.target.value,
     });
   };
+  //Email Validation
+  const validateEmail = (email: any) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  //Handle editing of data
   const editFormData = async (contactId: number) => {
     contactAPI
       .getContact()
@@ -108,6 +142,7 @@ const AddContact: React.FC = () => {
       });
   };
   useEffect(() => {
+    //we check whether it is a new form or edit form based upon we do either editing or adding
     const contactId = params?.state?.contactId; // Optional chaining to prevent errors
     if (contactId !== undefined) {
       editFormData(Number(contactId));
@@ -118,7 +153,7 @@ const AddContact: React.FC = () => {
   return (
     <>
       <ToastContainer />
-      {loading && <Loader />}
+      {isLoading && <Loader />}
       <div>
         <div className="container">
           <div className="row">
@@ -127,7 +162,7 @@ const AddContact: React.FC = () => {
                 <div className="back">
                   <button
                     className="btn btn-primary"
-                    onClick={() => navigate("../Contacts")}
+                    onClick={() => navigate("../../Contacts")}
                   >
                     Back
                   </button>

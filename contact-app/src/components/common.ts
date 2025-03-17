@@ -17,8 +17,8 @@ export const toastSuccessPopup = (
   navigationUrl: string = ""
 ): void => {
   toast.success(msg, {
-    autoClose: ToastTimeOut, // `timeOut` should be `autoClose` in react-toastify
-    theme: ToastTheme as any, // Ensure ToastTheme is a valid react-toastify theme
+    autoClose: 300, // `timeOut` should be `autoClose` in react-toastify
+    theme: "colored" as any, // Ensure ToastTheme is a valid react-toastify theme
     onClose: () => {
       if (isReload) window.location.reload();
       if (hasValue(navigationUrl)) window.location.href = navigationUrl;

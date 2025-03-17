@@ -11,7 +11,7 @@ import { ToastContainer } from "react-toastify";
 import Loader from "../../loader/loader";
 import { Dialog } from "primereact/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { toastSuccessPopup, hasValue, formatDate } from "../common";
 
 const Contacts: React.FC = () => {
@@ -53,13 +53,17 @@ const Contacts: React.FC = () => {
   };
   //Delete Region
   const DeleteContact = async (contact: any) => {
+    setIsLoading(true);
     await contactAPI
       .deleteContact()
       .delete(contact)
       .then((res: any) => {
         if (res.status === 200) {
           console.log("Contact deleted successfully:", res.data);
+          setIsLoading(false);
+          toastSuccessPopup("Contact Deleted Sucessfully", false);
         }
+        fetchContacts();
       })
       .catch((e: any) => {
         console.error("Error deleting contact:", e);
@@ -86,27 +90,28 @@ const Contacts: React.FC = () => {
     </div>
   );
   //Initial loading
+  const fetchContacts = async () => {
+    try {
+      setIsLoading(true);
+      await contactAPI
+        .fetchContactsList()
+        .fetchAll()
+        .then((data) => {
+          setContacts(data.data);
+          setDashboard(data.data);
+        });
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        setIsLoading(true);
-        await contactAPI
-          .fetchContactsList()
-          .fetchAll()
-          .then((data) => {
-            setContacts(data.data);
-            setDashboard(data.data);
-          });
-      } catch (error) {
-        setIsLoading(false);
-        console.log(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchContacts();
   }, []);
 
+  //Allow redering of actions
   const renderActions = (rowData: any) => {
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
@@ -176,6 +181,33 @@ const Contacts: React.FC = () => {
                 <h1 className="mb-0">Contact Dashboard</h1>
                 <div className="col-lg-7">
                   <div className="d-flex justify-content-end align-items-center">
+                    <span className=" mr-2">
+                      {/* Edit Button */}
+                      <Tooltip id="add" />
+                      <button
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          padding: "1px",
+                          margin: "1px",
+                        }}
+                        data-tooltip-id="add"
+                        data-tooltip-content="add"
+                        data-tooltip-place="top"
+                        data-tooltip-offset={3}
+                        onClick={() => navigate("../contacts/add")}
+                      >
+                        <FontAwesomeIcon
+                          icon={faPlus}
+                          style={{
+                            color: "blue",
+                            fontSize: "30px",
+                            marginRight: "30px",
+                          }}
+                        />
+                      </button>
+                    </span>
                     <span className="p-input-icon-left">
                       <i className="pi pi-search" />
                       <InputText
