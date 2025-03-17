@@ -1,35 +1,58 @@
 @import "../../mixins";
 
 .contacts {
-   @include main-style();
+  @include main-style();
 
-   .table-wrapper {
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 30px 2px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+
+    table {
       width: 100%;
-      overflow-x: auto;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 0 30px 2px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      border-radius: 12px;
 
-      table {
-         width: 100%;
-
-         td,
-         th {
-            border: 1px solid #c3c3c380;
-            border-radius: 6px;
-            text-align: center;
-         }
+      td,
+      th {
+        border: 1px solid #c3c3c380;
+        border-radius: 6px;
+        text-align: center;
       }
-   }
+    }
+  }
 }
 .contacts .header {
-   display: flex; /* Flexbox layout */
-   justify-content: space-between; /* Ensures that the h1 and button are on opposite sides */
-   align-items: center; /* Vertically center the items */
-   width: 100%; /* Take the full width of the container */
-   margin-bottom: 20px;
- }
- button {
-   margin-left: 20px; /* Adds space between the h1 and the button */
- } 
+  display: flex; /* Flexbox layout */
+  justify-content: space-between; /* Ensures that the h1 and button are on opposite sides */
+  align-items: center; /* Vertically center the items */
+  width: 100%; /* Take the full width of the container */
+  margin-bottom: 20px;
+}
+button {
+  margin-left: 20px; /* Adds space between the h1 and the button */
+}
+/* Force background color and border on the calendar popup */
+.p-datepicker.p-component {
+  background-color: #ffffff !important; /* Change background */
+  border: 2px solid #007bff !important; /* Change border */
+  border-radius: 5px !important;
+}
+
+/* Calendar header (month, year navigation) */
+.p-datepicker .p-datepicker-header {
+  background-color: #007bff !important;
+  color: white !important;
+}
+
+/* Calendar days */
+.p-datepicker-calendar td {
+  border: 1px solid #ddd !important;
+}
+
+/* Highlighted selected date */
+.p-highlight {
+  background-color: #007bff !important;
+  color: white !important;
+}
