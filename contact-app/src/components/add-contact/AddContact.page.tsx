@@ -1,6 +1,5 @@
 //We use this compnent to both add-edit contact form
 import React, { useEffect, useRef, useState } from "react";
-import "./add-contact.scss";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../../loader/loader";
